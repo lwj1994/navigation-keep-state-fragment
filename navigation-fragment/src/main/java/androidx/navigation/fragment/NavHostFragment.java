@@ -37,9 +37,6 @@ import androidx.navigation.NavHostController;
 import androidx.navigation.Navigation;
 import androidx.navigation.Navigator;
 
-import com.lwjlol.navigation.R;
-
-
 /**
  * NavHostFragment provides an area within your layout for self-contained navigation to occur.
  *
@@ -98,7 +95,7 @@ public class NavHostFragment extends Fragment implements NavHost {
      * @param fragment the locally scoped Fragment for navigation
      * @return the locally scoped {@link NavController} for navigating from this {@link Fragment}
      * @throws IllegalStateException if the given Fragment does not correspond with a
-     * {@link NavHost} or is not within a NavHost.
+     *                               {@link NavHost} or is not within a NavHost.
      */
     @NonNull
     public static NavController findNavController(@NonNull Fragment fragment) {
@@ -145,7 +142,7 @@ public class NavHostFragment extends Fragment implements NavHost {
     /**
      * Create a new NavHostFragment instance with an inflated {@link NavGraph} resource.
      *
-     * @param graphResId resource id of the navigation graph to inflate
+     * @param graphResId           resource id of the navigation graph to inflate
      * @param startDestinationArgs arguments to send to the start destination of the graph
      * @return a new NavHostFragment instance
      */
@@ -286,6 +283,7 @@ public class NavHostFragment extends Fragment implements NavHost {
      * <p>
      * This is only called once in {@link #onCreate(Bundle)} and should not be called directly by
      * subclasses.
+     *
      * @return a new instance of a FragmentNavigator
      * @deprecated Use {@link #onCreateNavController(NavController)}
      */

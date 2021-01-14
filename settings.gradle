@@ -1,2 +1,2 @@
-include ':app', ':keep-fragmentstate'
+include ':app', ':navigation-fragment'
 rootProject.name='keepStateFragmentNavigation'

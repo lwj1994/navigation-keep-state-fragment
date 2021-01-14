@@ -2,9 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 ext {
-    libVersion = "0.0.1"
-    groupId = "com.lwjlol.navigation"
-    artifactId = "keep-fragmentstate"
+    libVersion = "2.3.2"
+    groupId = "com.lwjlol"
+    artifactId = "navigation-fragment"
     pkg_name = "navigation"
     libraryDescription = 'scaffold'
     siteUrl = 'https://github.com/lwj1994/android-scaffold.git'
