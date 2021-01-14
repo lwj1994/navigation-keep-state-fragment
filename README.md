@@ -21,6 +21,19 @@
 
 
 ## 使用方法
+
+### 1. 在项目根目录的 build.gradle 添加 maven 仓库
+```
+allprojects {
+    repositories {
+        maven {
+            url 'https://dl.bintray.com/wenchieh/maven'
+        }
+    }
+}
+```
+
+### 2.在项目的 build.grable 添加依赖
 ```
 // 将谷歌原生的 "androidx.navigation:navigation-fragment:navigation" 注释掉换成下面的依赖
 implementation 'com.lwjlol:navigation-fragment:$latest_version'
