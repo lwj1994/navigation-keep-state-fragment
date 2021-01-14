@@ -20,8 +20,9 @@
 ```
 
 
+## 使用方法
 ```
-// 替代 "androidx.navigation:navigation-fragment:navigation"
+// 将谷歌原生的 "androidx.navigation:navigation-fragment:navigation" 注释掉换成下面的依赖
 implementation 'com.lwjlol:navigation-fragment:$latest_version'
 
 // 如果依赖了 navigation-fragment-ktx 使用的时候需要把谷歌的 `androidx.navigation.fragment` 包名的代码剔除。
