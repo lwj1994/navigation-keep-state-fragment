@@ -22,7 +22,7 @@
 
 ```
 // 替代 "androidx.navigation:navigation-fragment:navigation"
-implementation 'com.lwjlol:navigation-fragmentstate:$latest_version'
+implementation 'com.lwjlol:navigation-fragment:$latest_version'
 
 // 如果依赖了 navigation-fragment-ktx 使用的时候需要把谷歌的 `androidx.navigation.fragment` 包名的代码剔除。
 implementation("androidx.navigation:navigation-fragment-ktx:${Versions.navigation}"){
