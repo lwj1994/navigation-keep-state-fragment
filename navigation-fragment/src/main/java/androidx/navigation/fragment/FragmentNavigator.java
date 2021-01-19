@@ -31,6 +31,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentFactory;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.OnLifecycleEvent;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
@@ -93,6 +96,10 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
             Log.i(TAG, "Ignoring popBackStack() call: FragmentManager has already"
                     + " saved its state");
             return false;
+        }
+        if (mFragmentManager.getFragments().size() > 1) {
+            Fragment last = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 2);
+            mFragmentManager.beginTransaction().setMaxLifecycle(last, Lifecycle.State.RESUMED).commit();
         }
         mFragmentManager.popBackStack(
                 generateBackStackName(mBackStack.size(), mBackStack.peekLast()),
@@ -175,9 +182,25 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
             popExitAnim = popExitAnim != -1 ? popExitAnim : 0;
             ft.setCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim);
         }
-
+        frag.getLifecycle().addObserver(new LifecycleObserver() {
+            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+            public void onResume() {
+                if (frag.getView() != null && !frag.getView().hasOnClickListeners()) {
+                    frag.getView().setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // 防止点击穿透
+                            Log.d("lwjlol-log", "防止点击穿透 onClick");
+                        }
+                    });
+                }
+                frag.getLifecycle().removeObserver(this);
+            }
+        });
         if (mFragmentManager.getFragments().size() > 0) {
-            ft.hide(mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 1));
+            Fragment last = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 1);
+//            ft.hide(last);
+            ft.setMaxLifecycle(last, Lifecycle.State.STARTED);
             ft.add(mContainerId, frag);
         } else {
             ft.replace(mContainerId, frag);

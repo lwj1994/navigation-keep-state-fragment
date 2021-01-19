@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    app:startDestination="@id/mainFragment"
+    tools:ignore="UnusedNavigation">
+
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.lwjlol.keepstatefragmentnavigation.MainFragment"
+        android:label="MainFragment">
+        <action
+            android:id="@+id/action_mainFragment_to_secFragment"
+            app:destination="@id/secFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/secFragment"
+        android:name="com.lwjlol.keepstatefragmentnavigation.SecFragment"
+        android:label="SecFragment" />
+</navigation>
