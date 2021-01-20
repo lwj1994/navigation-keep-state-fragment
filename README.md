@@ -1,5 +1,5 @@
 
-[ ![Download](https://api.bintray.com/packages/wenchieh/maven/navigation/images/download.svg?version=2.3.2) ](https://bintray.com/wenchieh/maven/navigation/2.3.2/link)
+[ ![Download](https://api.bintray.com/packages/wenchieh/maven/navigation/images/download.svg) ](https://bintray.com/wenchieh/maven/navigation/_latestVersion)
 
 
 因为 google 的 navigation 使用 `FragmenManager.replace()` 来切换 fragment 导致上一个 fragment 会销毁，返回时重走 `onCreateView` 等生命周期，用户体验极差。
