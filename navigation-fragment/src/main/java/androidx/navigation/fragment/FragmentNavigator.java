@@ -19,9 +19,13 @@ package androidx.navigation.fragment;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.MessageQueue;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.IdRes;
@@ -67,6 +71,8 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
     private final FragmentManager mFragmentManager;
     private final int mContainerId;
     private ArrayDeque<Integer> mBackStack = new ArrayDeque<>();
+    private ArrayDeque<NavAnimation> mAnimations = new ArrayDeque<>();
+
 
     public FragmentNavigator(@NonNull Context context, @NonNull FragmentManager manager,
                              int containerId) {
@@ -97,15 +103,105 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                     + " saved its state");
             return false;
         }
+        final Fragment last = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 1);
+        if (last.getView() != null) {
+            last.getView().setVisibility(View.VISIBLE);
+        }
         if (mFragmentManager.getFragments().size() > 1) {
-            Fragment last = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 2);
-            mFragmentManager.beginTransaction().setMaxLifecycle(last, Lifecycle.State.RESUMED).commit();
+            final Fragment preFrag = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 2);
+            if (preFrag.getView() != null) {
+                preFrag.getView().setVisibility(View.VISIBLE);
+            }
+            // when anim is running
+            if (preFrag.getView() != null && preFrag.getView().getAnimation() != null && !preFrag.getView().getAnimation().hasEnded()) {
+                preFrag.getView().getAnimation().cancel();
+                if (last.getView().getAnimation() != null) {
+                    last.getView().getAnimation().cancel();
+                }
+                performPopBack(preFrag);
+                return true;
+            }
+            if (last.getView() != null && last.getView().getAnimation() != null && !last.getView().getAnimation().hasEnded()) {
+                if (preFrag.getView().getAnimation() != null) {
+                    preFrag.getView().getAnimation().cancel();
+                }
+                last.getView().getAnimation().cancel();
+                performPopBack(preFrag);
+                return true;
+            }
+
+            NavAnimation navAnimation = mAnimations.peekLast();
+            final int popEnterAnim = navAnimation.getAnims()[2];
+            final int popExitAnim = navAnimation.getAnims()[3];
+
+            // no view
+            if (preFrag.getView() == null && last.getView() == null) {
+                performPopBack(preFrag);
+                return true;
+            }
+
+            // no anim
+            if ((popEnterAnim == 0 || popEnterAnim == -1) && (popExitAnim == 0 || popExitAnim == -1)) {
+                performPopBack(preFrag);
+                return true;
+            }
+
+            Animation animationEnter, animationExit;
+            Animation.AnimationListener animationListener = new Animation.AnimationListener() {
+                boolean executeTransaction = false;
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    animation.setAnimationListener(null);
+                    if (((popEnterAnim == 0 || popEnterAnim == -1) && (popExitAnim != 0 && popExitAnim != -1)) ||
+                            ((popExitAnim == 0 || popExitAnim == -1) && (popEnterAnim != 0 && popEnterAnim != -1))) {
+                        performPopBack(preFrag);
+                        return;
+                    }
+                    if (executeTransaction) {
+                        performPopBack(preFrag);
+                    }
+                    if (!executeTransaction) {
+                        executeTransaction = true;
+                    }
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+            if (popEnterAnim != 0 && popEnterAnim != -1 && preFrag.getView() != null) {
+                animationEnter = AnimationUtils.loadAnimation(preFrag.getContext(), popEnterAnim);
+                animationEnter.setAnimationListener(animationListener);
+                preFrag.getView().startAnimation(animationEnter);
+            }
+            if (popExitAnim != 0 && popExitAnim != -1 && last.getView() != null) {
+                animationExit = AnimationUtils.loadAnimation(last.getContext(), popExitAnim);
+                animationExit.setAnimationListener(animationListener);
+                last.getView().startAnimation(animationExit);
+            }
+        } else {
+            performPopBack(null);
+        }
+
+        return true;
+    }
+
+    private void performPopBack(Fragment preFrag) {
+        if (preFrag != null) {
+            mFragmentManager.beginTransaction().setMaxLifecycle(preFrag, Lifecycle.State.RESUMED).commit();
         }
         mFragmentManager.popBackStack(
                 generateBackStackName(mBackStack.size(), mBackStack.peekLast()),
                 FragmentManager.POP_BACK_STACK_INCLUSIVE);
         mBackStack.removeLast();
-        return true;
+        mAnimations.removeLast();
     }
 
     @NonNull
@@ -180,33 +276,101 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
             exitAnim = exitAnim != -1 ? exitAnim : 0;
             popEnterAnim = popEnterAnim != -1 ? popEnterAnim : 0;
             popExitAnim = popExitAnim != -1 ? popExitAnim : 0;
-            ft.setCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim);
         }
+
+        final int finalEnterAnim = enterAnim;
+        final int finalExitAnim = exitAnim;
         frag.getLifecycle().addObserver(new LifecycleObserver() {
+            boolean enterAnimEndFlag = false;
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_START)
+            public void onStart() {
+                // make view invisible when enter anim start
+                if (!enterAnimEndFlag) {
+                    if (frag.getView() != null) {
+                        frag.getView().setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+
             @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
             public void onResume() {
-                if (frag.getView() != null && !frag.getView().hasOnClickListeners()) {
-                    frag.getView().setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // 防止点击穿透
-                            Log.d("lwjlol-log", "防止点击穿透 onClick");
+                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+                    @Override
+                    public boolean queueIdle() {
+                        if (frag.getView()!=null){
+                            frag.getView().setVisibility(View.VISIBLE);
                         }
-                    });
-                }
-                frag.getLifecycle().removeObserver(this);
+                        return false;
+                    }
+                });
+
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+            public void onCreate() {
+                MessageQueue.IdleHandler handler = new MessageQueue.IdleHandler() {
+                    @Override
+                    public boolean queueIdle() {
+                        if (frag.getView() != null){
+                            frag.getView().setVisibility(View.VISIBLE);
+                        }
+                        // enter anim
+                        if (finalEnterAnim != 0 && finalEnterAnim != -1 && frag.getView() != null) {
+                            final Animation enterAnimation = AnimationUtils.loadAnimation(frag.getContext(), finalEnterAnim);
+                            enterAnimation.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    animation.setAnimationListener(null);
+                                    enterAnimEndFlag = true;
+
+                                    // hide pre fragment when anim end
+                                    int size = mFragmentManager.getFragments().size();
+                                    if (size > 1) {
+                                        for (int i = 0; i < size - 1; i++) {
+                                            View view = mFragmentManager.getFragments().get(i).getView();
+                                            if (view != null) {
+                                                view.setVisibility(View.GONE);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+
+                                }
+                            });
+                            frag.getView().startAnimation(enterAnimation);
+                        }
+
+                        // exit anim
+                        int size = mFragmentManager.getFragments().size();
+                        if (size > 1) {
+                            View view = mFragmentManager.getFragments().get(size - 2).getView();
+                            if (view != null) {
+                                if (finalExitAnim != 0 && finalExitAnim != -1) {
+                                    view.startAnimation(AnimationUtils.loadAnimation(frag.getContext(), finalExitAnim));
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                };
+                Looper.myQueue().addIdleHandler(handler);
             }
         });
         if (mFragmentManager.getFragments().size() > 0) {
             Fragment last = mFragmentManager.getFragments().get(mFragmentManager.getFragments().size() - 1);
-//            ft.hide(last);
             ft.setMaxLifecycle(last, Lifecycle.State.STARTED);
             ft.add(mContainerId, frag);
         } else {
             ft.replace(mContainerId, frag);
         }
-
-        //        ft.replace(mContainerId, frag);
         ft.setPrimaryNavigationFragment(frag);
 
         final @IdRes int destId = destination.getId();
@@ -246,6 +410,12 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
         ft.commit();
         // The commit succeeded, update our view of the world
         if (isAdded) {
+            mAnimations.add(new NavAnimation(destId, new int[]{
+                    enterAnim,
+                    exitAnim,
+                    popEnterAnim,
+                    popExitAnim
+            }));
             mBackStack.add(destId);
             return destination;
         } else {

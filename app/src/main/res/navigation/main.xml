@@ -13,6 +13,7 @@
         android:label="MainFragment">
         <action
             android:id="@+id/action_mainFragment_to_secFragment"
+            app:launchSingleTop="true"
             app:destination="@id/secFragment" />
     </fragment>
     <fragment

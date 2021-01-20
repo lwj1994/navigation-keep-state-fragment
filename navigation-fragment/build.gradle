@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 ext {
-    libVersion = "2.3.2"
+    libVersion = "2.3.2.1"
     groupId = "com.lwjlol"
     artifactId = "navigation-fragment"
     pkg_name = "navigation"
