@@ -23,7 +23,7 @@ allprojects {
 ### 2.在项目的 build.gradle 添加依赖
 ```
 // 将谷歌原生的 "androidx.navigation:navigation-fragment:navigation" 注释掉换成下面的依赖
-implementation 'com.lwjlol:navigation-fragment:2.3.2'
+implementation 'com.lwjlol:navigation-fragment:${latestVersion}'
 
 // 如果依赖了 navigation-fragment-ktx 使用的时候需要把谷歌的 `androidx.navigation.fragment` 包名的代码剔除。
 implementation("androidx.navigation:navigation-fragment-ktx:${Versions.navigation}"){
