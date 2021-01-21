@@ -30,20 +30,24 @@ class SecFragment() : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return TextView(context).apply {
+        Log.d("lwjlol-log", "viewTest.parent = ${viewTest?.parent}")
+        viewTest ?:  TextView(context).apply {
+            viewTest = this
             text = "SecFragment"
             textSize = 100F
-            setOnClickListener {
-                findNavController().navigate(
-                    R.id.secFragment, null, NavOptions.Builder()
-                        .setEnterAnim(R.anim.enter_anim)
-                        .setExitAnim(R.anim.exit_anim)
-                        .setPopEnterAnim(R.anim.pop_enter_anim)
-                        .setPopExitAnim(R.anim.pop_exit_anim)
-                        .build()
-                )
-            }
         }
+
+        viewTest?.setOnClickListener {
+            findNavController().navigate(
+                R.id.secFragment, null, NavOptions.Builder()
+                    .setEnterAnim(R.anim.enter_anim)
+                    .setExitAnim(R.anim.exit_anim)
+                    .setPopEnterAnim(R.anim.pop_enter_anim)
+                    .setPopExitAnim(R.anim.pop_exit_anim)
+                    .build()
+            )
+        }
+        return  viewTest
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

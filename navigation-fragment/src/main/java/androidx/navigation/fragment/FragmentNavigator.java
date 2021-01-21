@@ -66,6 +66,7 @@ import java.util.Map;
 public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> {
     private static final String TAG = "FragmentNavigator";
     private static final String KEY_BACK_STACK_IDS = "androidx-nav-fragment:navigator:backStackIds";
+    private static final String KEY_ANIMATION = "androidx-nav-fragment:navigator:animation";
 
     private final Context mContext;
     private final FragmentManager mFragmentManager;
@@ -286,10 +287,8 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
             @OnLifecycleEvent(Lifecycle.Event.ON_START)
             public void onStart() {
                 // make view invisible when enter anim start
-                if (!enterAnimEndFlag) {
-                    if (frag.getView() != null) {
-                        frag.getView().setVisibility(View.INVISIBLE);
-                    }
+                if (!enterAnimEndFlag && finalEnterAnim != 0 && finalEnterAnim != -1 && frag.getView() != null) {
+                    frag.getView().setVisibility(View.INVISIBLE);
                 }
             }
 
@@ -298,7 +297,7 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (frag.getView()!=null){
+                        if (frag.getView() != null) {
                             frag.getView().setVisibility(View.VISIBLE);
                         }
                         return false;
@@ -312,7 +311,7 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                 MessageQueue.IdleHandler handler = new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (frag.getView() != null){
+                        if (frag.getView() != null) {
                             frag.getView().setVisibility(View.VISIBLE);
                         }
                         // enter anim
@@ -433,6 +432,12 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
             backStack[index++] = id;
         }
         b.putIntArray(KEY_BACK_STACK_IDS, backStack);
+        NavAnimation[] animations = new NavAnimation[mAnimations.size()];
+        int indexAnim = 0;
+        for (NavAnimation animation : mAnimations) {
+            animations[indexAnim++] = animation;
+        }
+        b.putParcelableArray(KEY_ANIMATION, animations);
         return b;
     }
 
@@ -444,6 +449,13 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                 mBackStack.clear();
                 for (int destId : backStack) {
                     mBackStack.add(destId);
+                }
+            }
+            NavAnimation[] animations = (NavAnimation[]) savedState.getParcelableArray(KEY_ANIMATION);
+            if (animations != null) {
+                mAnimations.clear();
+                for (NavAnimation animation : animations) {
+                    mAnimations.add(animation);
                 }
             }
         }

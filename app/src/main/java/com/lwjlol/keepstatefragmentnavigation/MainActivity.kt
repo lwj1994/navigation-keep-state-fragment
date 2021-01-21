@@ -14,6 +14,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 
+var viewTest: View? = null
+
 class MainActivity : AppCompatActivity() {
     lateinit var container: View
     lateinit var text: TextView
@@ -28,7 +30,6 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.container, navHostFragment)
             .commit()
-
         lifecycleScope.launch {
             while (true){
                 delay(1000)
