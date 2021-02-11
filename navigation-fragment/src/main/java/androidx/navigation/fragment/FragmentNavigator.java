@@ -21,6 +21,7 @@ import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.MessageQueue;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -311,11 +312,9 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                 MessageQueue.IdleHandler handler = new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (frag.getView() != null) {
-                            frag.getView().setVisibility(View.VISIBLE);
-                        }
                         // enter anim
                         if (finalEnterAnim != 0 && finalEnterAnim != -1 && frag.getView() != null) {
+                            frag.getView().setVisibility(View.VISIBLE);
                             final Animation enterAnimation = AnimationUtils.loadAnimation(frag.getContext(), finalEnterAnim);
                             enterAnimation.setAnimationListener(new Animation.AnimationListener() {
                                 @Override
@@ -451,11 +450,11 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
                     mBackStack.add(destId);
                 }
             }
-            NavAnimation[] animations = (NavAnimation[]) savedState.getParcelableArray(KEY_ANIMATION);
+            Parcelable[] animations = savedState.getParcelableArray(KEY_ANIMATION);
             if (animations != null) {
                 mAnimations.clear();
-                for (NavAnimation animation : animations) {
-                    mAnimations.add(animation);
+                for (Parcelable animation : animations) {
+                    mAnimations.add((NavAnimation) animation);
                 }
             }
         }
