@@ -196,7 +196,7 @@ public class FragmentNavigator extends Navigator<FragmentNavigator.Destination> 
     }
 
     private void performPopBack(Fragment preFrag) {
-        if (preFrag != null) {
+        if (preFrag != null && !preFrag.isDetached()) {
             mFragmentManager.beginTransaction().setMaxLifecycle(preFrag, Lifecycle.State.RESUMED).commit();
         }
         mFragmentManager.popBackStack(
