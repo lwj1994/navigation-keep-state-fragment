@@ -5,7 +5,7 @@
 因为 google 的 navigation 使用 `FragmenManager.replace()` 来切换 fragment 导致上一个 fragment 会销毁，返回时重走 `onCreateView` 等生命周期，用户体验极差。
 
 * 使用 `add/hide fragment` 代替 `replace`，并且在转场动画结束时，对上个页面进行 `hide`，避免多个 `Fragment` 的过度绘制
-* 优化了转场动画，内部使用 `IdeHandler` 自定义实现了 `fragment` 的转场动画。Fragment 的原生转场动画有些许不好用。drakeet 大佬也提到过部分场景 Fragment 的转场会卡顿。
+* 优化了转场动画，内部使用 `IdeHandler` 自定义实现了 `fragment` 的转场动画。
 * 内部使用 `setMaxLifecycle` 对`hide`  状态的 Fragment 重置生命周期为 `onPause`
 
 ## 使用方法
